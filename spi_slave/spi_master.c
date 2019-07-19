@@ -151,9 +151,7 @@ void receive_data(uint8_t *data, uint32_t len)
 	//uint8_t P7CFGA_Reg[4] = {0xF4, 0x00, 0x00, 0x00};
 	
 	uint8_t reg[4] = {Status1Reg, 0x00, 0x00, 0x00};
-	// SPI_MASTER_CS_LOW();
-	// spi_send_data_standard(0, 0, reg, 1, data, len);
-	// SPI_MASTER_CS_HIGH();
+	
 	fpioa_set_function(SPI_MASTER_MISO_PIN, FUNC_SPI0_D1);
 	    SPI_MASTER_CS_LOW();
 	    
@@ -174,3 +172,32 @@ void send_data(uint8_t *data, uint32_t len)
 
 	    SPI_MASTER_CS_HIGH();
 }
+
+void send_dma(uint8_t *data, uint32_t len)
+{
+	uint8_t Status1Reg = ((0x07 << 1) & 0x7E);
+			//uint8_t P7CFGA_Reg[4] = {0xF4, 0x00, 0x00, 0x00};
+			
+			uint8_t reg[4] = {Status1Reg, 0x00, 0x00, 0x00};
+			
+	SPI_MASTER_CS_LOW();
+	spi_send_data_standard_dma(DMAC_CHANNEL0, SPI_DEVICE_0, SPI_CHIP_SELECT_0, reg, 1, 
+			data, len);
+	 SPI_MASTER_CS_HIGH();
+}
+void receive_dma(uint8_t *data, uint32_t len)
+{
+	uint8_t Status1Reg = (0x80|((0x07 << 1) & 0x7E));
+		//uint8_t P7CFGA_Reg[4] = {0xF4, 0x00, 0x00, 0x00};
+		
+		uint8_t reg[4] = {Status1Reg, 0x00, 0x00, 0x00};
+		
+		fpioa_set_function(SPI_MASTER_MISO_PIN, FUNC_SPI0_D1);
+			    SPI_MASTER_CS_LOW();
+			    
+			    spi_receive_data_standard_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, SPI_DEVICE_0, 
+			    		SPI_CHIP_SELECT_0, reg, 1, data, len);
+			SPI_MASTER_CS_HIGH();
+			    fpioa_set_function(SPI_MASTER_MOSI_PIN, FUNC_SPI0_D0);
+}
+

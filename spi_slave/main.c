@@ -73,8 +73,12 @@ int main(void)
         spi_send_data(test_data, 8);
         for (uint32_t i = 0; i < 7; i++)
                     test_data[i] = 0;
-        send_data(test_data, 1);
-        receive_data(test_data, 1);
+        send_dma(test_data, 1);
+        receive_dma(test_data, 1);
+        
+        for (uint32_t i = 0; i < 7; i++)
+                    test_data[i] = i + 1;
+            spi_send_data(test_data, 8);
         //spi_receive_data(test_data, 8);
    /* for (uint32_t i = 0; i < 8; i++)
         test_data[i] = i;

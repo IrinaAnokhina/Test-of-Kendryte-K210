@@ -24,4 +24,7 @@ int spi_send_data(uint8_t *data, uint32_t len);
 void receive_data(uint8_t *data, uint32_t len);
 int spi_receive_data(uint8_t *data, uint32_t len);
 void send_data(uint8_t *data, uint32_t len);
+void send_dma(uint8_t *data, uint32_t len);
+void receive_dma(uint8_t *data, uint32_t len);
+
 #endif
