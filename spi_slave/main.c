@@ -25,6 +25,7 @@
 #define MASTER_MODE
 #define PLL0_OUTPUT_FREQ 800000000UL
 
+int send_sequence(void *ctx);
 
 static void io_set_power(void)
 {
@@ -45,6 +46,8 @@ static uint8_t slave_cfg[32];
 static uint8_t test_data_tmp[1024];
 #endif
 
+uint8_t count = 1;
+
 int main(void)
 {
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
@@ -61,73 +64,51 @@ int main(void)
     *(uint32_t *)(&slave_cfg[8]) = (uint32_t)test_data_tmp;
     spi_slave_init(slave_cfg, 32);
 #endif
-    /* enable global interrupt */
+    /* enable global interrupt for SPI0*/
+    int result;
+    result = plic_set_priority(IRQN_SPI0_INTERRUPT, 1);
+    if(result)
+    	printf("fail to set priority\n");
+   plic_irq_register(IRQN_SPI0_INTERRUPT, send_sequence, &count);
+   
+    result = plic_irq_enable(IRQN_SPI0_INTERRUPT);
+    if(result)
+        	printf("fail to enable irq\n");
     sysctl_enable_irq();
     /* system start */
     printf("System start\n");
 #ifdef MASTER_MODE
-    for (uint32_t i = 0; i < 7; i++)
-            test_data[i] = i + 1;
+    
+    uint8_t Status1Reg = ((0x07 << 1) & 0x7E);
+    		//uint8_t P7CFGA_Reg[4] = {0xF4, 0x00, 0x00, 0x00};
+    		
+    		uint8_t reg[4] = {Status1Reg, 0x00, 0x00, 0x00};
+    		
+    for (uint32_t i = 0; i < 7; i++)	//testing api function
+            test_data[i] = count;
     spi_send_data(test_data, 8);
- 
+    for (uint32_t i = 0; i < 7; i++)
+                test_data[i] = count;
         spi_send_data(test_data, 8);
         for (uint32_t i = 0; i < 7; i++)
                     test_data[i] = 0;
-        send_dma(test_data, 1);
-        receive_dma(test_data, 1);
+        send_data(reg, 1, test_data, 1);		//testing my function for sending to another module
+       reg[0] = (0x80|((0x07 << 1) & 0x7E));
+        receive_data(reg, 1, test_data, 1);		//testing my function for receiveing from another module
+        printf("After receive\n");
         
-        for (uint32_t i = 0; i < 7; i++)
-                    test_data[i] = i + 1;
-            spi_send_data(test_data, 8);
-        //spi_receive_data(test_data, 8);
-   /* for (uint32_t i = 0; i < 8; i++)
-        test_data[i] = i;
-    spi_master_transfer(test_data, 0, 8, WRITE_CONFIG);
-    for (uint32_t i = 0; i < 8; i++)
-        test_data[i] = 0;
-    spi_master_transfer(test_data, 0, 8, READ_CONFIG);
-    for (uint32_t i = 0; i < 8; i++) {
-        if (test_data[i] != (uint8_t)i)
-            printf("%d: 0x%02x," ,i, test_data[i]);
-    }
-    printf("\n");
-
-    uint32_t addr, addr_bak;
-    do
-    {
-        addr = 0;
-        addr_bak = 0;
-        spi_master_transfer((uint8_t *)&addr, 8, 4, READ_CONFIG);
-        spi_master_transfer((uint8_t *)&addr_bak, 8, 4, READ_CONFIG);
-    }while(addr != addr_bak);
-    
-    for (uint32_t i = 0; i < 8; i++)
-        test_data[i] = i;
-    spi_master_transfer(test_data, addr, 8, WRITE_DATA_BYTE);
-    for (uint32_t i = 0; i < 8; i++)
-        test_data[i] = 0;
-    spi_master_transfer(test_data, addr, 8, READ_DATA_BYTE);
-    for (uint32_t i = 0; i < 8; i++) {
-        if (test_data[i] != (uint8_t)i)
-            printf("%d: 0x%02x," ,i, test_data[i]);
-    }
-    printf("\n");
-
-    for (uint32_t i = 0; i < 1024; i++)
-        test_data[i] = i;
-    spi_master_transfer(test_data, addr, 1024, WRITE_DATA_BLOCK);
-    for (uint32_t i = 0; i < 1024; i++)
-        test_data[i] = 0;
-    spi_master_transfer(test_data, addr, 1024, READ_DATA_BLOCK);
-    for (uint32_t i = 0; i < 1024; i++) {
-        if (test_data[i] != (uint8_t)i)
-            printf("%d: 0x%02x," ,i, test_data[i]);
-    }
-    printf("\n");
-*/
     printf("test finish\n");
 #endif
     while (1)
         ;
+}
+
+int send_sequence(void *ctx)
+{
+	 count++;
+	 printf("In send_sequence, count = %u ", count);
+	 for (uint32_t i = 0; i < 7; i++)
+	                     test_data[i] = count;
+	        spi_send_data(test_data, 8);
 }
 

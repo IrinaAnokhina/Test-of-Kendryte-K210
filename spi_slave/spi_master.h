@@ -21,10 +21,10 @@
 int spi_master_init(void);
 int spi_master_transfer(uint8_t *data, uint32_t addr, uint32_t len, uint8_t mode);
 int spi_send_data(uint8_t *data, uint32_t len);
-void receive_data(uint8_t *data, uint32_t len);
-int spi_receive_data(uint8_t *data, uint32_t len);
-void send_data(uint8_t *data, uint32_t len);
-void send_dma(uint8_t *data, uint32_t len);
-void receive_dma(uint8_t *data, uint32_t len);
+void receive_data(const uint8_t *reg, size_t size_reg, uint8_t *data, uint32_t len);
+int spi_receive_data( uint8_t *data, uint32_t len);
+void send_data(const uint8_t *reg, size_t size_reg, uint8_t *data, uint32_t len);
+void send_dma(const uint8_t *reg, size_t size_reg, uint8_t *data, uint32_t len);
+void receive_dma(const uint8_t *reg, size_t size_reg, uint8_t *data, uint32_t len);
 
 #endif
