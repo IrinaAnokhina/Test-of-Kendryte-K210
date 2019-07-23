@@ -28,8 +28,7 @@ int main(void)
     i2c_slave_init();
     uint8_t data_buf[16] = {0x08, 0xab, 0xec, 0x05};
    
-   // i2c_slave_transmit();
-   // i2c_slave_receive(1);
+    i2c_slave_receive(1);
     //i2c_master_init();
   // i2c_write_reg(0xE0, &data_buf[0], 1);
    
@@ -41,7 +40,7 @@ int main(void)
    
     while(1)
     {
-    	//i2c_slave_receive(50);
+    	i2c_slave_receive(5);
     }
        // ;
     return 0;

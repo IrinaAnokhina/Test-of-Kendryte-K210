@@ -36,9 +36,7 @@ uint32_t i2c_slave_transmit()
    //ret = count++;
     if (slave_device.acces_reg >= SLAVE_MAX_ADDR)
         slave_device.acces_reg = 0;
-    slave_device.reg_data[0] = 0x08;
-    slave_device.reg_data[1] = 0xaa;
-    slave_device.reg_data[1] = 0xdc;
+  
     ret = slave_device.reg_data[slave_device.acces_reg];
     slave_device.acces_reg++;
     return ret;
