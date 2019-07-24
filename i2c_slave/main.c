@@ -6,7 +6,7 @@
 #include "i2c_slave.h"
 #include "i2c.h"
 
-#define MASTER_MODE
+//#define MASTER_MODE
 void io_mux_init(void)
 {
 #ifdef MASTER_MODE
@@ -20,7 +20,7 @@ void io_mux_init(void)
 
 int main(void)
 {
-	 dmac_init();
+	 //dmac_init();
 	 
     int result = 0;
    // uint8_t index, data_buf[SLAVE_MAX_ADDR];
@@ -39,13 +39,14 @@ int main(void)
        i2c_read_reg(0, &data_buf[0], 4);
 #else
     i2c_slave_init();
-    i2c_slave_receive(1);
+   // i2c_slave_receive(1);
 #endif 
    
     while(1)
     {
 #ifndef MASTER_MODE
-    	i2c_slave_receive(5);
+    	//i2c_slave_receive(1);
+    	//i2c_recv_data(0, data_buf, 4, data_buf, 4);
 #endif
     }
        

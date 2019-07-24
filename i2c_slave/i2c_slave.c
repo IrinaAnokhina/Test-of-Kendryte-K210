@@ -18,15 +18,21 @@ i2c_slave_handler_t slave_handler;
 
 void i2c_slave_receive(uint32_t data)
 {
+	
     if (slave_device.acces_reg == 0xFF)
     {
+    	printf(" acces_reg == 0xFF\r\n");
         if (data < SLAVE_MAX_ADDR)
+        {
             slave_device.acces_reg = data;
+            printf(" data < SLAVE_MAX_ADDR\r\n");
+        }
     } 
     else if (slave_device.acces_reg < SLAVE_MAX_ADDR)
     {
         slave_device.reg_data[slave_device.acces_reg] = data;
         slave_device.acces_reg++;
+        printf(" acces_reg < SLAVE_MAX_ADDR\r\n");
     }
 }
 uint32_t i2c_slave_transmit()
@@ -36,7 +42,7 @@ uint32_t i2c_slave_transmit()
    //ret = count++;
     if (slave_device.acces_reg >= SLAVE_MAX_ADDR)
         slave_device.acces_reg = 0;
-  
+    
     ret = slave_device.reg_data[slave_device.acces_reg];
     slave_device.acces_reg++;
     return ret;
@@ -177,16 +183,5 @@ uint8_t i2c_read_reg(uint8_t reg, uint8_t *data_buf, size_t length)
     return 0;
 }
 
-void send_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, const uint8_t *send_buf,
-                       size_t send_buf_len)
-{
-	uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
-	    int i;
-	    for(i = 0; i < send_buf_len; i++)
-	    {
-	        buf[i] = send_buf[i];
-	    }
-	    
-}
 
 
