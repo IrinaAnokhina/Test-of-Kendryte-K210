@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define SLAVE_MAX_ADDR  14
-#define SLAVE_ADDRESS   0x4c
+#define SLAVE_ADDRESS   0x76 //0x4C
 
 typedef struct _slave_info
 {
