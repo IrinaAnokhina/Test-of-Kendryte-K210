@@ -18,6 +18,7 @@
 #include "uart.h"
 #include "gpiohs.h"
 #include "sysctl.h"
+#include "dmac.h"
 
 #define CMD_LENTH  4
 
@@ -100,7 +101,8 @@ int main()
     io_mux_init();
     plic_init();
     sysctl_enable_irq();
-
+    dmac_init();
+    
     gpiohs_set_drive_mode(13, GPIO_DM_OUTPUT);
     gpio_pin_value_t value = GPIO_PV_HIGH;
     gpiohs_set_pin(13, value);
@@ -111,13 +113,13 @@ int main()
     uart_set_receive_trigger(UART_NUM, UART_RECEIVE_FIFO_8);
     uart_irq_register(UART_NUM, UART_RECEIVE, on_uart_recv, NULL, 2);
 
-    uart_set_send_trigger(UART_NUM, UART_SEND_FIFO_0);
+    //uart_set_send_trigger(UART_NUM, UART_SEND_FIFO_0);
     uint32_t v_uart_num = UART_NUM;
-    uart_irq_register(UART_NUM, UART_SEND, on_uart_send, &v_uart_num, 2);
+    //uart_irq_register(UART_NUM, UART_SEND, on_uart_send, &v_uart_num, 2);
 
     char *hel = {"AA\n"};
-    uart_send_data(UART_NUM, hel, strlen(hel));
-
+    //uart_send_data(UART_NUM, hel, strlen(hel));
+    uart_send_data_dma_irq(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel), on_uart_send, &v_uart_num, 2);
     while(1);
 }
 
