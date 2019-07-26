@@ -25,17 +25,19 @@
 #define CLOSLIGHT   0x55555555
 #define OPENLIGHT   0xAAAAAAAA
 
-#define UART_NUM    UART_DEVICE_3
+#define UART_NUM    UART_DEVICE_1
+
+uint8_t in_buf[0];
 
 int release_cmd(char *cmd)
 {
     switch(*((int *)cmd))
     {
         case CLOSLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_LOW);
+        gpiohs_set_pin(24, GPIO_PV_LOW);
         break;
         case OPENLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_HIGH);
+        gpiohs_set_pin(24, GPIO_PV_HIGH);
         break;
     }
     return 0;
@@ -56,44 +58,21 @@ char g_cmd[4];
 volatile uint8_t g_cmd_cnt = 0;
 int on_uart_recv(void *ctx)
 {
-    char v_buf[8];
-    int ret =  uart_receive_data(UART_NUM, v_buf, 8);
-    for(uint32_t i = 0; i < ret; i++)
-    {
-        if(v_buf[i] == 0x55 && (recv_flag == 0 || recv_flag == 1))
-        {
-            recv_flag = 1;
-            continue;
-        }
-        else if(v_buf[i] == 0xAA && recv_flag == 1)
-        {
-            recv_flag = 2;
-            g_cmd_cnt = 0;
-            continue;
-        }
-        else if(recv_flag == 2 && g_cmd_cnt < CMD_LENTH)
-        {
-            g_cmd[g_cmd_cnt++] = v_buf[i];
-            if(g_cmd_cnt >= CMD_LENTH)
-            {
-                release_cmd(g_cmd);
-                recv_flag = 0;
-            }
-            continue;
-        }
-        else
-        {
-            recv_flag = 0;
-        }
-    }
+    //char in_buf[1];
+    int ret =  uart_receive_data(UART_NUM, in_buf, 1);
+   
+    if(in_buf[0] == 0x55)
+    	gpiohs_set_pin(24, GPIO_PV_LOW);
+    else if(in_buf[0] == 0x12)
+    	gpiohs_set_pin(24, GPIO_PV_HIGH);
     return 0;
 }
 
 void io_mux_init(void)
 {
-    fpioa_set_function(4, FUNC_UART1_RX + UART_NUM * 2);
-    fpioa_set_function(5, FUNC_UART1_TX + UART_NUM * 2);
-    fpioa_set_function(13, FUNC_GPIOHS13);
+    fpioa_set_function(6, FUNC_UART1_RX + UART_NUM * 2);
+    fpioa_set_function(7, FUNC_UART1_TX + UART_NUM * 2);
+    fpioa_set_function(24, FUNC_GPIOHS24);
 }
 
 int main()
@@ -103,9 +82,9 @@ int main()
     sysctl_enable_irq();
     dmac_init();
     
-    gpiohs_set_drive_mode(13, GPIO_DM_OUTPUT);
+    gpiohs_set_drive_mode(24, GPIO_DM_OUTPUT);
     gpio_pin_value_t value = GPIO_PV_HIGH;
-    gpiohs_set_pin(13, value);
+    gpiohs_set_pin(24, value);
 
     uart_init(UART_NUM);
     uart_configure(UART_NUM, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
@@ -113,13 +92,20 @@ int main()
     uart_set_receive_trigger(UART_NUM, UART_RECEIVE_FIFO_8);
     uart_irq_register(UART_NUM, UART_RECEIVE, on_uart_recv, NULL, 2);
 
-    //uart_set_send_trigger(UART_NUM, UART_SEND_FIFO_0);
+    uart_set_send_trigger(UART_NUM, UART_SEND_FIFO_0);
     uint32_t v_uart_num = UART_NUM;
-    //uart_irq_register(UART_NUM, UART_SEND, on_uart_send, &v_uart_num, 2);
+    uart_irq_register(UART_NUM, UART_SEND, on_uart_send, &v_uart_num, 2);
 
-    char *hel = {"AA\n"};
-    //uart_send_data(UART_NUM, hel, strlen(hel));
-    uart_send_data_dma_irq(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel), on_uart_send, &v_uart_num, 2);
-    while(1);
+    char *hel = {"hello world!\n"};
+   // uart_send_data(UART_NUM, hel, strlen(hel));
+   uart_send_data_dma_irq(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel), on_uart_send, &v_uart_num, 2);
+   //uart_receive_data_dma_irq(UART_NUM, DMAC_CHANNEL1, in_buf, strlen(in_buf), on_uart_recv, &v_uart_num, 2);
+    while(1)
+    	{
+    	/*uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, in_buf, 1);
+    	if(in_buf[0] == 0x55)
+    	    	gpiohs_set_pin(24, GPIO_PV_LOW);
+    	    else if(in_buf[0] == 0x12)
+    	    	gpiohs_set_pin(24, GPIO_PV_HIGH);*/
+    	}
 }
-
