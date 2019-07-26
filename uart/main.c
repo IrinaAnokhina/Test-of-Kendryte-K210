@@ -49,6 +49,7 @@ void io_mux_init(void)
 
 int main()
 {
+	printf("hello\r\n");
 	//gpio_init();
     io_mux_init();
     dmac_init();
@@ -61,7 +62,7 @@ int main()
 
     uart_init(UART_NUM);
     uart_configure(UART_NUM, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
-
+    printf("hello\r\n");
     const unsigned char *hel = {"hello world!\r\n"};
     uart_send_data(UART_NUM, hel, strlen(hel));
     //uart_send_data_dma(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel));
@@ -78,10 +79,13 @@ int main()
     int i = 0;
     while (1)
     {
-    	uart_receive_data(UART_NUM, &recv, 1);
+    	while(uart_receive_data(UART_NUM, &recv, 1))
+    	{
     	//uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, &recv, 1);
-        while(recv != 0)
-        {        	
+       // while(recv != 0)
+        //{        
+        	 uart_send_data(UART_NUM, recv, strlen(recv));
+    	uart_send_data(UART_NUM, hel, strlen(hel));
         	if(recv == 0x55)
         		 gpiohs_set_pin(24, GPIO_PV_LOW);
         	else if(recv == 0x12)
