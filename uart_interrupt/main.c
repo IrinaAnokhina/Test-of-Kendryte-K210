@@ -102,8 +102,9 @@ int main()
    //uart_receive_data_dma_irq(UART_NUM, DMAC_CHANNEL1, in_buf, strlen(in_buf), on_uart_recv, &v_uart_num, 2);
     while(1)
     	{
-    	/*uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, in_buf, 1);
-    	if(in_buf[0] == 0x55)
+    	//uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, in_buf, 1);
+    	  uart_receive_data_dma_irq(UART_NUM, DMAC_CHANNEL1, in_buf, strlen(in_buf), on_uart_recv, NULL, 3);
+    	/*if(in_buf[0] == 0x55)
     	    	gpiohs_set_pin(24, GPIO_PV_LOW);
     	    else if(in_buf[0] == 0x12)
     	    	gpiohs_set_pin(24, GPIO_PV_HIGH);*/

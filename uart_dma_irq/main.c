@@ -39,10 +39,10 @@ int release_cmd(char *cmd)
 {
     switch(*((int *)cmd)){
         case CLOSLIGHT:
-        gpiohs_set_pin(3, GPIO_PV_LOW);
+        gpiohs_set_pin(24, GPIO_PV_LOW);
         break;
         case OPENLIGHT:
-        gpiohs_set_pin(3, GPIO_PV_HIGH);
+        gpiohs_set_pin(24, GPIO_PV_HIGH);
         break;
     }
     return 0;
@@ -58,6 +58,8 @@ int uart_send_done(void *ctx)
 
 int uart_recv_done(void *ctx)
 {
+	char *com = {"In recv_done()\r\n"};
+	uart_send_data(UART_NUM, com, strlen(com));
     uint32_t *v_dest = ((uint32_t *)ctx) + RECV_DMA_LENTH;
     if(v_dest >= recv_buf + 48)
         v_dest = recv_buf;
@@ -79,7 +81,11 @@ int uart_recv_done(void *ctx)
 
     uart_handle_data_dma(UART_NUM, data, &irq);
     uint32_t *v_buf = (uint32_t *)ctx;
-    for(uint32_t i = 0; i < RECV_DMA_LENTH; i++)
+    if(v_buf[0] == 0x55)
+    	gpiohs_set_pin(24, GPIO_PV_LOW);
+    else if(v_buf[0] == 0x12)
+    	gpiohs_set_pin(24, GPIO_PV_HIGH);
+   /* for(uint32_t i = 0; i < RECV_DMA_LENTH; i++)
     {
         if(v_buf[i] == 0x55 && (recv_flag == 0 || recv_flag == 1))
         {
@@ -106,16 +112,16 @@ int uart_recv_done(void *ctx)
         {
             recv_flag = 0;
         }
-    }
+    }*/
 
     return 0;
 }
 
 void io_mux_init(void)
 {
-    fpioa_set_function(4, FUNC_UART1_RX + UART_NUM * 2);
-    fpioa_set_function(5, FUNC_UART1_TX + UART_NUM * 2);
-    fpioa_set_function(13, FUNC_GPIOHS13);
+    fpioa_set_function(6, FUNC_UART1_RX + UART_NUM * 2);
+    fpioa_set_function(7, FUNC_UART1_TX + UART_NUM * 2);
+    fpioa_set_function(24, FUNC_GPIOHS24);
 }
 
 int main(void)
@@ -125,9 +131,9 @@ int main(void)
     plic_init();
     sysctl_enable_irq();
 
-    gpiohs_set_drive_mode(13, GPIO_DM_OUTPUT);
+    gpiohs_set_drive_mode(24, GPIO_DM_OUTPUT);
     gpio_pin_value_t value = GPIO_PV_HIGH;
-    gpiohs_set_pin(13, value);
+    gpiohs_set_pin(24, value);
 
     uart_init(UART_NUM);
     uart_configure(UART_NUM, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
@@ -175,8 +181,9 @@ int main(void)
     while(1)
     {
         sleep(1);
-        uart_handle_data_dma(UART_NUM, data, &irq);
-        g_uart_send_flag = 1;
+       // uart_handle_data_dma(UART_NUM, data, &irq);
+        uart_handle_data_dma(UART_NUM, v_rx_data, &v_rx_irq);
+        //g_uart_send_flag = 1;
     }
 }
 
