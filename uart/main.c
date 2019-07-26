@@ -19,10 +19,10 @@
 #include "gpiohs.h"
 #include "sysctl.h"
 
-#define RECV_LENTH  4
+#define RECV_LENTH  1
 
-#define CLOSLIGHT   0x55555555
-#define OPENLIGHT   0xAAAAAAAA
+#define CLOSLIGHT   0x55
+#define OPENLIGHT   0xAA
 
 #define UART_NUM    UART_DEVICE_1
 
@@ -30,10 +30,10 @@ int release_cmd(char *cmd)
 {
     switch(*((int *)cmd)){
         case CLOSLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_LOW);
+        gpiohs_set_pin(24, GPIO_PV_LOW);
         break;
         case OPENLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_HIGH);
+        gpiohs_set_pin(24, GPIO_PV_HIGH);
         break;
     }
     return 0;
@@ -42,9 +42,9 @@ int release_cmd(char *cmd)
 void io_mux_init(void)
 {
 
-    fpioa_set_function(4, FUNC_UART1_RX + UART_NUM * 2);
-    fpioa_set_function(5, FUNC_UART1_TX + UART_NUM * 2);
-    fpioa_set_function(13, FUNC_GPIOHS13);
+    fpioa_set_function(6, FUNC_UART1_RX + UART_NUM * 2);
+    fpioa_set_function(7, FUNC_UART1_TX + UART_NUM * 2);
+    fpioa_set_function(24, FUNC_GPIOHS24);
 }
 
 int main()
@@ -55,19 +55,19 @@ int main()
     plic_init();
     sysctl_enable_irq();
 
-    gpiohs_set_drive_mode(13, GPIO_DM_OUTPUT);
+    gpiohs_set_drive_mode(24, GPIO_DM_OUTPUT);
     gpio_pin_value_t value = GPIO_PV_HIGH;
-    gpiohs_set_pin(13, value);
+    gpiohs_set_pin(24, value);
 
     uart_init(UART_NUM);
     uart_configure(UART_NUM, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
 
     const unsigned char *hel = {"hello world!\r\n"};
-    //uart_send_data(UART_NUM, hel, strlen(hel));
-    uart_send_data_dma(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel));
-    uart_send_data_dma(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel));
+    uart_send_data(UART_NUM, hel, strlen(hel));
+    //uart_send_data_dma(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel));
+    //uart_send_data_dma(UART_NUM, DMAC_CHANNEL0, hel, strlen(hel));
   
-    char *str = {"uart receive\r\n"};
+    char *str = {"i >= RECV_LENTH\r\n"};
     char *str0 = {"case 0\r\n"};
     char *str1 = {"case 1\r\n"};
     char *str2 = {"case 2\r\n"};
@@ -78,39 +78,39 @@ int main()
     int i = 0;
     while (1)
     {
-    	uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, &recv, 1);
+    	uart_receive_data(UART_NUM, &recv, 1);
+    	//uart_receive_data_dma(UART_NUM, DMAC_CHANNEL1, &recv, 1);
         while(recv != 0)
-        {
-        	uart_send_data(UART_NUM, str, strlen(str));
-        	//printf("uart receive\r\n");
-            uart_send_data(UART_NUM, &recv, 1);
-            switch(rec_flag)
+        {        	
+        	if(recv == 0x55)
+        		 gpiohs_set_pin(24, GPIO_PV_LOW);
+        	else if(recv == 0x12)
+        		 gpiohs_set_pin(24, GPIO_PV_HIGH);
+            //uart_send_data(UART_NUM, &recv, 1);
+           /* switch(rec_flag)
             {
                 case 0:
                 recv == 0x55 ? (rec_flag = 1) : rec_flag;
-                uart_send_data(UART_NUM, str0, strlen(str0));
-                printf("case 0\r\n");
+                //uart_send_data(UART_NUM, str0, strlen(str0));
                 break;
                 case 1:
-                	uart_send_data(UART_NUM, str1, strlen(str1));
-                recv == 0xAA ? (rec_flag = 2) : (rec_flag = 0);
-                printf("case 1\r\n");
+                	//uart_send_data(UART_NUM, str1, strlen(str1));
+                recv == 0xAA ? (rec_flag = 2) : (rec_flag = 0);                
                 break;
                 case 2:
-                	uart_send_data(UART_NUM, str2, strlen(str2));
-                	printf("case 2\r\n");
+                	uart_send_data(UART_NUM, str2, strlen(str2));                	
                 cmd[i++] = recv;
                 if(i >= RECV_LENTH)
                 {
-                	printf("i >= RECV_LENTH\r\n");
+                	uart_send_data(UART_NUM, str, strlen(str));
                     i = 0;
                     release_cmd(cmd);
                     rec_flag = 0;
                 }
                 break;
-            }
+            }*/
             	
-           // release_cmd(recv);
+            //release_cmd(recv);
         }
         
     }

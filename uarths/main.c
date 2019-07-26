@@ -28,10 +28,10 @@ int release_cmd(char *cmd)
 {
     switch(*((int *)cmd)){
         case CLOSLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_LOW);
+        gpiohs_set_pin(24, GPIO_PV_LOW);
         break;
         case OPENLIGHT:
-        gpiohs_set_pin(13, GPIO_PV_HIGH);
+        gpiohs_set_pin(24, GPIO_PV_HIGH);
         break;
     }
     return 0;
@@ -42,7 +42,7 @@ void io_mux_init(void)
 
     fpioa_set_function(6, FUNC_UARTHS_RX);
     fpioa_set_function(7, FUNC_UARTHS_TX);
-    fpioa_set_function(13, FUNC_GPIOHS13);
+    fpioa_set_function(24, FUNC_GPIOHS24);
 }
 
 int main()
@@ -53,9 +53,9 @@ int main()
     plic_init();
     sysctl_enable_irq();
     uarths_init();
-    gpiohs_set_drive_mode(13, GPIO_DM_OUTPUT);
+    gpiohs_set_drive_mode(24, GPIO_DM_OUTPUT);
     gpio_pin_value_t value = GPIO_PV_HIGH;
-    gpiohs_set_pin(13, value);
+    gpiohs_set_pin(24, value);
 
     uarths_config(115200, UARTHS_STOP_1);
     
@@ -77,6 +77,10 @@ int main()
     	while(uarths_receive_data(&recv, 1))
         {
     		uarths_send_data(recv, 1);
+    		if(recv == 0x55)
+    			gpiohs_set_pin(24, GPIO_PV_LOW);
+    		else if(recv == 0xaa)
+    			gpiohs_set_pin(24, GPIO_PV_HIGH);
            /* switch(rec_flag)
             {
                 case 0:
@@ -102,7 +106,7 @@ int main()
             }
             */
             	
-           release_cmd(recv);
+          // release_cmd(recv);
         }
         
     }
