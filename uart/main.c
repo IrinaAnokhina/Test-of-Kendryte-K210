@@ -92,31 +92,6 @@ int main()
         		 gpiohs_set_pin(24, GPIO_PV_LOW);
         	else if(recv == 0x12)
         		 gpiohs_set_pin(24, GPIO_PV_HIGH);
-            //uart_send_data(UART_NUM, &recv, 1);
-           /* switch(rec_flag)
-            {
-                case 0:
-                recv == 0x55 ? (rec_flag = 1) : rec_flag;
-                //uart_send_data(UART_NUM, str0, strlen(str0));
-                break;
-                case 1:
-                	//uart_send_data(UART_NUM, str1, strlen(str1));
-                recv == 0xAA ? (rec_flag = 2) : (rec_flag = 0);                
-                break;
-                case 2:
-                	uart_send_data(UART_NUM, str2, strlen(str2));                	
-                cmd[i++] = recv;
-                if(i >= RECV_LENTH)
-                {
-                	uart_send_data(UART_NUM, str, strlen(str));
-                    i = 0;
-                    release_cmd(cmd);
-                    rec_flag = 0;
-                }
-                break;
-            }*/
-            	
-            //release_cmd(recv);
         }
         
     }
