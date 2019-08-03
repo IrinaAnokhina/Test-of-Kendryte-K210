@@ -30,18 +30,16 @@ void get_date_time(bool alarm)
     if (!alarm)
         printf("%4d-%02d-%02d %02d:%02d:%02d\r\n", year, month, day, hour, minute, second);
     else
+    {
+    	rtc_alarm_get(&year, &month, &day, &hour, &minute, &second);
         printf("Alarm at --> %4d-%02d-%02d %02d:%02d:%02d\r\n", year, month, day, hour, minute, second);
+    }
 }
 
 int on_timer_interrupt(void *ctx)
 {
     get_date_time(false);
-    if(rtc_tick_get_interrupt_mode() == RTC_INT_SECOND)
-    	printf(" rtc mode is RTC_INT_SECOND\r\n");
-    else if(rtc_tick_get_interrupt_mode() == RTC_INT_MINUTE)
-    {
-    	printf("  rtc mode is RTC_INT_MINUTE\r\n");
-    }
+   
 	return 0;
 }
 
@@ -57,17 +55,22 @@ int on_alarm_interrupt(void *ctx)
       //      .month = 0,  /* Month mask */
       //      .year = 0,   /* Year mask */
      //   });
-    //rtc_tick_set_interrupt_mode(RTC_INT_MINUTE);
-    //rtc_alarm_set_interrupt(0);
-    if(rtc_tick_get_interrupt())
-    	printf(" rtc_tick interrupt enable\r\n");
-    else
+    rtc_tick_set_interrupt_mode(RTC_INT_MINUTE);
+    if(rtc_get_wday(2019, 8, 3) == 6)
     {
-    	printf(" rtc tick interrupt disable\r\n");
+    	printf("Today is Saturday\r\n");
     }
-    rtc_tick_set_interrupt(0);
-    
-	return 0;
+    int day = rtc_get_yday(2020, 1, 15);
+    printf("It`s a %i day of year\r\n", day);
+    if(rtc_year_is_leap(2020))
+    {
+    	printf("2020 is a leap year\r\n");
+    }
+    	if(!(rtc_year_is_leap(2019)))
+    	{
+    	printf("2019 is not a leap year\r\n");
+    	}
+    	return 0;
 }
 
 int main(void)
@@ -90,8 +93,8 @@ int main(void)
         false,
         (rtc_mask_t) {
             .second = 0, /* Second mask */
-            .minute = 1, /* Minute mask */
-            .hour = 0,   /* Hour mask */
+            .minute = 0, /* Minute mask */
+            .hour = 1,   /* Hour mask */
             .week = 0,   /* Week mask */
             .day = 0,    /* Day mask */
             .month = 0,  /* Month mask */
