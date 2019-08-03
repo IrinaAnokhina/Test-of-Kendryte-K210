@@ -36,12 +36,28 @@ void get_date_time(bool alarm)
 int on_timer_interrupt(void *ctx)
 {
     get_date_time(false);
+    if(rtc_alarm_get_interrupt())
+    	printf(" alarm is on\r\n");
+    else
+    {
+    	printf(" alarm is off\r\n");
+    }
 	return 0;
 }
 
 int on_alarm_interrupt(void *ctx)
 {
     get_date_time(true);
+   //rtc_alarm_set_mask((rtc_mask_t) {
+     //       .second = 0, /* Second mask */
+      //      .minute = 0, /* Minute mask */
+      //      .hour = 1,   /* Hour mask */
+      //      .week = 0,   /* Week mask */
+       //     .day = 0,    /* Day mask */
+      //      .month = 0,  /* Month mask */
+      //      .year = 0,   /* Year mask */
+     //   });
+    rtc_alarm_set_interrupt(0);
 	return 0;
 }
 
@@ -49,13 +65,13 @@ int main(void)
 {
     rtc_init();
     rtc_timer_set(2018, 9, 12, 22, 55, 50);
-    rtc_alarm_set(2018, 9, 12, 22, 58, 00);
+    rtc_alarm_set(2018, 9, 12, 22, 55, 00);
 
     printf("RTC Tick and Alarm Test\r\n" "Compiled in " __DATE__ " " __TIME__ "\r\n");
 
     rtc_tick_irq_register(
         false,
-		RTC_INT_MINUTE,
+		RTC_INT_SECOND,
         on_timer_interrupt,
         NULL,
         1
@@ -65,8 +81,8 @@ int main(void)
         false,
         (rtc_mask_t) {
             .second = 0, /* Second mask */
-            .minute = 0, /* Minute mask */
-            .hour = 1,   /* Hour mask */
+            .minute = 1, /* Minute mask */
+            .hour = 0,   /* Hour mask */
             .week = 0,   /* Week mask */
             .day = 0,    /* Day mask */
             .month = 0,  /* Month mask */
