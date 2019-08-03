@@ -36,11 +36,11 @@ void get_date_time(bool alarm)
 int on_timer_interrupt(void *ctx)
 {
     get_date_time(false);
-    if(rtc_alarm_get_interrupt())
-    	printf(" alarm is on\r\n");
-    else
+    if(rtc_tick_get_interrupt_mode() == RTC_INT_SECOND)
+    	printf(" rtc mode is RTC_INT_SECOND\r\n");
+    else if(rtc_tick_get_interrupt_mode() == RTC_INT_MINUTE)
     {
-    	printf(" alarm is off\r\n");
+    	printf("  rtc mode is RTC_INT_MINUTE\r\n");
     }
 	return 0;
 }
@@ -57,7 +57,16 @@ int on_alarm_interrupt(void *ctx)
       //      .month = 0,  /* Month mask */
       //      .year = 0,   /* Year mask */
      //   });
-    rtc_alarm_set_interrupt(0);
+    //rtc_tick_set_interrupt_mode(RTC_INT_MINUTE);
+    //rtc_alarm_set_interrupt(0);
+    if(rtc_tick_get_interrupt())
+    	printf(" rtc_tick interrupt enable\r\n");
+    else
+    {
+    	printf(" rtc tick interrupt disable\r\n");
+    }
+    rtc_tick_set_interrupt(0);
+    
 	return 0;
 }
 
@@ -65,7 +74,7 @@ int main(void)
 {
     rtc_init();
     rtc_timer_set(2018, 9, 12, 22, 55, 50);
-    rtc_alarm_set(2018, 9, 12, 22, 55, 00);
+    rtc_alarm_set(2018, 9, 12, 22, 56, 00);
 
     printf("RTC Tick and Alarm Test\r\n" "Compiled in " __DATE__ " " __TIME__ "\r\n");
 
